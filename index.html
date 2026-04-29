@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Minhas Receitas</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Receitas">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#C4622D">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF6F0;
+    --warm: #F5EDE0;
+    --terracotta: #C4622D;
+    --terracotta-light: #E07A4A;
+    --terracotta-dark: #9E4A1E;
+    --green: #4A7C59;
+    --green-light: #6DAF85;
+    --text: #2A1F14;
+    --text-muted: #7A6552;
+    --border: #E8D8C4;
+    --white: #FFFFFF;
+    --shadow: 0 4px 24px rgba(42,31,20,0.10);
+    --shadow-sm: 0 2px 8px rgba(42,31,20,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--terracotta);
+    padding: 20px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(196,98,45,0.3);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: var(--white);
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .header h1 span { opacity: 0.7; font-weight: 400; }
+
+  .btn-add-main {
+    background: var(--white);
+    color: var(--terracotta);
+    border: none;
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-add-main:active { transform: scale(0.96); }
+
+  .search-bar {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .search-bar input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    width: 100%;
+  }
+  .search-bar input::placeholder { color: rgba(255,255,255,0.6); }
+  .search-icon { color: rgba(255,255,255,0.7); font-size: 16px; }
+
+  /* LISTA */
+  .list-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 32px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .emoji { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .empty-state p { font-size: 14px; line-height: 1.5; }
+
+  .recipe-card {
+    background: var(--white);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .recipe-card:active { transform: scale(0.98); }
+
+  .card-header {
+    padding: 16px 16px 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .card-emoji {
+    font-size: 36px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .card-info { flex: 1; }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .card-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .card-meta span { display: flex; align-items: center; gap: 3px; }
+
+  .card-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .btn-icon {
+    background: var(--warm);
+    border: none;
+    border-radius: 10px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-icon:active { transform: scale(0.9); }
+  .btn-icon.danger:active { background: #FFE5E5; }
+  .btn-icon.edit:active { background: #E5F0FF; }
+
+  .card-footer {
+    padding: 0 16px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ingredients-preview {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .yt-badge {
+    background: #FF0000;
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+  }
+
+  /* MODAL OVERLAY */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(42,31,20,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--white);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 0 0 40px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .overlay.active .modal { transform: translateY(0); }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+
+  .modal-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--white);
+    z-index: 10;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .btn-close {
+    background: var(--warm);
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+  }
+
+  .modal-body { padding: 20px; }
+
+  /* FORM */
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--warm);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .form-input:focus {
+    border-color: var(--terracotta);
+    background: var(--white);
+  }
+  textarea.form-input {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .emoji-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .emoji-btn {
+    background: var(--warm);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .emoji-btn.selected {
+    border-color: var(--terracotta);
+    background: rgba(196,98,45,0.1);
+  }
+
+  /* INGREDIENTES */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .btn-small {
+    background: var(--terracotta);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .ingredient-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 70px 34px;
+    gap: 6px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .ingredient-row .form-input { padding: 10px 12px; font-size: 14px; }
+
+  .btn-remove-ing {
+    background: #FFE5E5;
+    border: none;
+    border-radius: 8px;
+    width: 34px;
+    height: 38px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #CC3333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-save {
+    width: 100%;
+    background: var(--terracotta);
+    color: var(--white);
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-save:active { transform: scale(0.98); background: var(--terracotta-dark); }
+
+  /* VIEW MODAL */
+  .recipe-emoji-big {
+    font-size: 64px;
+    text-align: center;
+    padding: 20px 0 10px;
+  }
+  .recipe-view-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 6px;
+    padding: 0 20px;
+  }
+  .recipe-view-meta {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .yt-link {
+    background: linear-gradient(135deg, #FF0000, #CC0000);
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 20px 20px;
+    box-shadow: 0 4px 12px rgba(255,0,0,0.25);
+  }
+
+  .ingredients-section {
+    padding: 0 20px;
+    margin-bottom: 20px;
+  }
+  .ingredients-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ingredient-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--warm);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+  }
+  .ingredient-name { font-size: 15px; color: var(--text); font-weight: 500; }
+  .ingredient-amount { font-size: 14px; color: var(--terracotta); font-weight: 600; }
+
+  .mode-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px;
+    margin-bottom: 16px;
+  }
+  .mode-tab {
+    flex: 1;
+    background: var(--warm);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-muted);
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .mode-tab.active {
+    border-color: var(--terracotta);
+    color: var(--terracotta);
+    background: rgba(196,98,45,0.08);
+    font-weight: 600;
+  }
+
+  /* CALCULADORA */
+  .calc-section {
+    padding: 0 20px;
+  }
+  .calc-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .calc-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+
+  .calc-ingredient {
+    background: var(--warm);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .calc-ing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .calc-ing-name { font-weight: 600; font-size: 15px; }
+  .calc-ing-original { font-size: 12px; color: var(--text-muted); }
+  .calc-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .calc-input {
+    flex: 1;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--terracotta);
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .calc-input:focus { border-color: var(--terracotta); }
+  .calc-unit {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    min-width: 30px;
+  }
+  .calc-arrow {
+    font-size: 20px;
+    color: var(--text-muted);
+  }
+  .calc-result-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+    min-width: 70px;
+    text-align: center;
+  }
+
+  .calc-info {
+    background: rgba(74,124,89,0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .instructions-section {
+    padding: 0 20px;
+    margin-bottom: 20px;
+  }
+  .instructions-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .instructions-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--warm);
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  /* DELETE CONFIRM */
+  .delete-confirm {
+    padding: 20px;
+    text-align: center;
+  }
+  .delete-confirm .emoji { font-size: 48px; margin-bottom: 12px; }
+  .delete-confirm h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .delete-confirm p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+  .delete-actions { display: flex; gap: 10px; }
+  .btn-cancel {
+    flex: 1;
+    background: var(--warm);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .btn-delete-confirm {
+    flex: 1;
+    background: #CC3333;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+  }
+
+  .count-badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .header-row2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Minhas <span>Receitas</span> 🍽️</h1>
+    </div>
+    <button class="btn-add-main" onclick="openAddModal()">
+      ＋ Nova
+    </button>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Buscar receita..." oninput="renderList()">
+  </div>
+</div>
+
+<div class="list-container" id="listContainer"></div>
+
+<!-- OVERLAY FORM (ADD/EDIT) -->
+<div class="overlay" id="formOverlay" onclick="handleOverlayClick(event, 'formOverlay')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="formTitle">Nova Receita</span>
+      <button class="btn-close" onclick="closeModal('formOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Ícone</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da Receita</label>
+        <input class="form-input" id="inputName" type="text" placeholder="Ex: Bolo de cenoura">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tempo de preparo</label>
+        <input class="form-input" id="inputTime" type="text" placeholder="Ex: 45 min">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Porções</label>
+        <input class="form-input" id="inputServings" type="text" placeholder="Ex: 8 porções">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link do YouTube (opcional)</label>
+        <input class="form-input" id="inputYoutube" type="url" placeholder="https://youtube.com/...">
+      </div>
+
+      <div class="form-group">
+        <div class="section-title">
+          Ingredientes
+          <button class="btn-small" onclick="addIngredientRow()">＋ Adicionar</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 80px 70px 34px;gap:6px;margin-bottom:6px;">
+          <span style="font-size:11px;color:var(--text-muted);padding-left:4px;">Nome</span>
+          <span style="font-size:11px;color:var(--text-muted);padding-left:4px;">Qtd</span>
+          <span style="font-size:11px;color:var(--text-muted);padding-left:4px;">Unid.</span>
+          <span></span>
+        </div>
+        <div id="ingredientsList"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Modo de preparo (opcional)</label>
+        <textarea class="form-input" id="inputInstructions" placeholder="Descreva o passo a passo..."></textarea>
+      </div>
+
+      <button class="btn-save" onclick="saveRecipe()">💾 Salvar Receita</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY VIEW -->
+<div class="overlay" id="viewOverlay" onclick="handleOverlayClick(event, 'viewOverlay')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">Receita</span>
+      <button class="btn-close" onclick="closeModal('viewOverlay')">✕</button>
+    </div>
+    <div id="viewContent"></div>
+  </div>
+</div>
+
+<!-- OVERLAY DELETE -->
+<div class="overlay" id="deleteOverlay" onclick="handleOverlayClick(event, 'deleteOverlay')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="delete-confirm">
+      <div class="emoji">🗑️</div>
+      <h3>Apagar receita?</h3>
+      <p id="deleteRecipeName">Esta ação não pode ser desfeita.</p>
+      <div class="delete-actions">
+        <button class="btn-cancel" onclick="closeModal('deleteOverlay')">Cancelar</button>
+        <button class="btn-delete-confirm" onclick="confirmDelete()">Apagar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMOJIS = ['🍰','🍲','🥗','🍕','🍝','🍜','🥘','🍱','🥩','🍗','🐟','🥕','🍞','🥐','🧁','🍩','🫕','🥚','🧆','🍛'];
+
+let recipes = JSON.parse(localStorage.getItem('recipes') || '[]');
+let editingId = null;
+let deletingId = null;
+let selectedEmoji = EMOJIS[0];
+let calcTimeouts = {};
+
+function saveToStorage() {
+  localStorage.setItem('recipes', JSON.stringify(recipes));
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function renderList() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = recipes.filter(r => r.name.toLowerCase().includes(q));
+  const container = document.getElementById('listContainer');
+
+  if (recipes.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">👨‍🍳</div>
+        <h3>Nenhuma receita ainda</h3>
+        <p>Toque em <strong>+ Nova</strong> para adicionar sua primeira receita!</p>
+      </div>`;
+    return;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">🔍</div>
+        <h3>Nada encontrado</h3>
+        <p>Tente outro termo de busca.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(r => {
+    const ingsPreview = r.ingredients.map(i => i.name).join(', ') || 'Sem ingredientes';
+    return `
+    <div class="recipe-card" onclick="openView('${r.id}')">
+      <div class="card-header">
+        <div class="card-emoji">${r.emoji}</div>
+        <div class="card-info">
+          <div class="card-title">${r.name}</div>
+          <div class="card-meta">
+            ${r.time ? `<span>⏱ ${r.time}</span>` : ''}
+            ${r.servings ? `<span>👥 ${r.servings}</span>` : ''}
+            <span>🧂 ${r.ingredients.length} ingredientes</span>
+          </div>
+        </div>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn-icon edit" onclick="openEdit('${r.id}')">✏️</button>
+          <button class="btn-icon danger" onclick="openDelete('${r.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="ingredients-preview">${ingsPreview}</div>
+        ${r.youtube ? `<a class="yt-badge" href="${r.youtube}" target="_blank" onclick="event.stopPropagation()">▶ YT</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// EMOJIS
+function renderEmojiPicker() {
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e =>
+    `<button type="button" class="emoji-btn ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiPicker();
+}
+
+// INGREDIENTES FORM
+function addIngredientRow(name='', qty='', unit='g') {
+  const div = document.createElement('div');
+  div.className = 'ingredient-row';
+  div.innerHTML = `
+    <input class="form-input ing-name" type="text" placeholder="Ingrediente" value="${name}">
+    <input class="form-input ing-qty" type="number" placeholder="0" value="${qty}" step="any">
+    <input class="form-input ing-unit" type="text" placeholder="g/ml/xíc" value="${unit}">
+    <button type="button" class="btn-remove-ing" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.getElementById('ingredientsList').appendChild(div);
+}
+
+function getIngredients() {
+  const rows = document.querySelectorAll('.ingredient-row');
+  return Array.from(rows).map(r => ({
+    name: r.querySelector('.ing-name').value.trim(),
+    qty: parseFloat(r.querySelector('.ing-qty').value) || 0,
+    unit: r.querySelector('.ing-unit').value.trim() || 'g'
+  })).filter(i => i.name);
+}
+
+// MODALS
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+function openAddModal() {
+  editingId = null;
+  selectedEmoji = EMOJIS[0];
+  document.getElementById('formTitle').textContent = 'Nova Receita';
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputTime').value = '';
+  document.getElementById('inputServings').value = '';
+  document.getElementById('inputYoutube').value = '';
+  document.getElementById('inputInstructions').value = '';
+  document.getElementById('ingredientsList').innerHTML = '';
+  addIngredientRow();
+  renderEmojiPicker();
+  openModal('formOverlay');
+  setTimeout(() => document.getElementById('inputName').focus(), 400);
+}
+
+function openEdit(id) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  editingId = id;
+  selectedEmoji = r.emoji;
+  document.getElementById('formTitle').textContent = 'Editar Receita';
+  document.getElementById('inputName').value = r.name;
+  document.getElementById('inputTime').value = r.time || '';
+  document.getElementById('inputServings').value = r.servings || '';
+  document.getElementById('inputYoutube').value = r.youtube || '';
+  document.getElementById('inputInstructions').value = r.instructions || '';
+  document.getElementById('ingredientsList').innerHTML = '';
+  (r.ingredients.length ? r.ingredients : [{}]).forEach(i => addIngredientRow(i.name||'', i.qty||'', i.unit||'g'));
+  renderEmojiPicker();
+  openModal('formOverlay');
+}
+
+function saveRecipe() {
+  const name = document.getElementById('inputName').value.trim();
+  if (!name) { alert('Digite o nome da receita!'); return; }
+  const recipe = {
+    id: editingId || uid(),
+    emoji: selectedEmoji,
+    name,
+    time: document.getElementById('inputTime').value.trim(),
+    servings: document.getElementById('inputServings').value.trim(),
+    youtube: document.getElementById('inputYoutube').value.trim(),
+    instructions: document.getElementById('inputInstructions').value.trim(),
+    ingredients: getIngredients()
+  };
+  if (editingId) {
+    const idx = recipes.findIndex(x => x.id === editingId);
+    recipes[idx] = recipe;
+  } else {
+    recipes.unshift(recipe);
+  }
+  saveToStorage();
+  closeModal('formOverlay');
+  renderList();
+}
+
+// VIEW
+function openView(id) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  renderViewContent(r, 'ingredients');
+  openModal('viewOverlay');
+}
+
+function renderViewContent(r, tab) {
+  const ingHtml = r.ingredients.map(i =>
+    `<div class="ingredient-chip">
+      <span class="ingredient-name">${i.name}</span>
+      <span class="ingredient-amount">${i.qty} ${i.unit}</span>
+    </div>`
+  ).join('') || '<p style="color:var(--text-muted);font-size:14px;">Nenhum ingrediente cadastrado.</p>';
+
+  const calcHtml = r.ingredients.length === 0
+    ? '<p style="color:var(--text-muted);font-size:14px;padding:0 20px;">Adicione ingredientes para usar a calculadora.</p>'
+    : `<div class="calc-section">
+        <h3>⚖️ Calculadora de Proporções</h3>
+        <p class="calc-subtitle">Digite a quantidade disponível de um ingrediente e veja quanto usar dos demais.</p>
+        ${r.ingredients.map((ing, idx) => `
+          <div class="calc-ingredient">
+            <div class="calc-ing-header">
+              <span class="calc-ing-name">${ing.name}</span>
+              <span class="calc-ing-original">Original: ${ing.qty} ${ing.unit}</span>
+            </div>
+            <div class="calc-input-row">
+              <input class="calc-input" type="number" id="calc_${idx}" value="${ing.qty}" step="any"
+                oninput="calcProportions('${r.id}', ${idx})" placeholder="${ing.qty}">
+              <span class="calc-unit">${ing.unit}</span>
+              <span class="calc-arrow">→</span>
+              <span class="calc-unit">fator:</span>
+              <span class="calc-result-val" id="factor_${idx}" style="font-size:15px;color:var(--text-muted)">1.00×</span>
+            </div>
+          </div>`).join('')}
+        <div class="calc-info" id="calcInfo">Digite uma quantidade para calcular as proporções 👆</div>
+      </div>`;
+
+  const instrHtml = r.instructions
+    ? `<div class="instructions-section"><h3>📝 Modo de Preparo</h3><div class="instructions-text">${r.instructions}</div></div>`
+    : '<p style="color:var(--text-muted);font-size:14px;padding:0 20px;">Nenhum modo de preparo cadastrado.</p>';
+
+  document.getElementById('viewContent').innerHTML = `
+    <div class="recipe-emoji-big">${r.emoji}</div>
+    <div class="recipe-view-title">${r.name}</div>
+    <div class="recipe-view-meta">
+      ${r.time ? `<span>⏱ ${r.time}</span>` : ''}
+      ${r.servings ? `<span>👥 ${r.servings}</span>` : ''}
+      <span>🧂 ${r.ingredients.length} ingredientes</span>
+    </div>
+    ${r.youtube ? `<a class="yt-link" href="${r.youtube}" target="_blank">▶ Assistir no YouTube</a>` : ''}
+    <div class="mode-tabs">
+      <button class="mode-tab ${tab==='ingredients'?'active':''}" onclick="switchTab('${r.id}','ingredients')">🧂 Ingredientes</button>
+      <button class="mode-tab ${tab==='calc'?'active':''}" onclick="switchTab('${r.id}','calc')">⚖️ Calcular</button>
+      <button class="mode-tab ${tab==='instructions'?'active':''}" onclick="switchTab('${r.id}','instructions')">📝 Preparo</button>
+    </div>
+    <div id="tabContent">
+      ${tab === 'ingredients' ? `<div class="ingredients-section"><h3>🧂 Ingredientes</h3>${ingHtml}</div>` : ''}
+      ${tab === 'calc' ? calcHtml : ''}
+      ${tab === 'instructions' ? instrHtml : ''}
+    </div>
+  `;
+}
+
+function switchTab(id, tab) {
+  const r = recipes.find(x => x.id === id);
+  if (r) renderViewContent(r, tab);
+}
+
+function calcProportions(recipeId, changedIdx) {
+  const r = recipes.find(x => x.id === recipeId);
+  if (!r) return;
+  const inputVal = parseFloat(document.getElementById(`calc_${changedIdx}`).value);
+  if (!inputVal || inputVal <= 0 || !r.ingredients[changedIdx].qty) return;
+
+  const factor = inputVal / r.ingredients[changedIdx].qty;
+
+  r.ingredients.forEach((ing, idx) => {
+    const factorEl = document.getElementById(`factor_${idx}`);
+    if (!factorEl) return;
+    if (idx === changedIdx) {
+      factorEl.textContent = factor.toFixed(2) + '×';
+      factorEl.style.color = 'var(--terracotta)';
+    } else {
+      const newVal = (ing.qty * factor);
+      const display = Number.isInteger(newVal) ? newVal : newVal.toFixed(1);
+      factorEl.textContent = `${display} ${ing.unit}`;
+      factorEl.style.color = 'var(--green)';
+      factorEl.style.fontSize = '16px';
+    }
+  });
+
+  const calcInfo = document.getElementById('calcInfo');
+  if (calcInfo) {
+    calcInfo.textContent = `Fator: ${factor.toFixed(3)}× da receita original`;
+  }
+}
+
+// DELETE
+function openDelete(id) {
+  deletingId = id;
+  const r = recipes.find(x => x.id === id);
+  document.getElementById('deleteRecipeName').textContent = `"${r?.name}" será apagada permanentemente.`;
+  openModal('deleteOverlay');
+}
+function confirmDelete() {
+  recipes = recipes.filter(x => x.id !== deletingId);
+  saveToStorage();
+  closeModal('deleteOverlay');
+  closeModal('viewOverlay');
+  renderList();
+}
+
+// INIT
+renderList();
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('SW registrado'))
+      .catch(e => console.log('SW erro:', e));
+  });
+}
+</script>
+</body>
+</html>
