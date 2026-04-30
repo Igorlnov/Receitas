@@ -950,23 +950,24 @@ function renderViewContent(r, tab) {
     ? '<p style="color:var(--text-muted);font-size:14px;padding:0 20px;">Adicione ingredientes para usar a calculadora.</p>'
     : `<div class="calc-section">
         <h3>⚖️ Calculadora de Proporções</h3>
-        <p class="calc-subtitle">Digite a quantidade disponível de um ingrediente e veja quanto usar dos demais.</p>
+        <p class="calc-subtitle">Digite a quantidade que você tem de um ingrediente e veja quanto usar dos demais.</p>
         ${r.ingredients.map((ing, idx) => `
           <div class="calc-ingredient">
             <div class="calc-ing-header">
               <span class="calc-ing-name">${ing.name}</span>
-              <span class="calc-ing-original">Original: ${ing.qty} ${ing.unit}</span>
+              <span class="calc-ing-original">Receita: ${ing.qty || "?"} ${ing.unit}</span>
             </div>
             <div class="calc-input-row">
-              <input class="calc-input" type="number" id="calc_${idx}" value="${ing.qty}" step="any"
-                oninput="calcProportions('${r.id}', ${idx})" placeholder="${ing.qty}">
+              <input class="calc-input" type="number" id="calc_${idx}"
+                data-original="${ing.qty}"
+                value="" step="any" placeholder="Tenho..."
+                oninput="calcProportions('${r.id}', ${idx})">
               <span class="calc-unit">${ing.unit}</span>
               <span class="calc-arrow">→</span>
-              <span class="calc-unit">fator:</span>
-              <span class="calc-result-val" id="factor_${idx}" style="font-size:15px;color:var(--text-muted)">1.00×</span>
+              <span class="calc-result-val" id="factor_${idx}" style="font-size:15px;color:var(--text-muted)">—</span>
             </div>
           </div>`).join('')}
-        <div class="calc-info" id="calcInfo">Digite uma quantidade para calcular as proporções 👆</div>
+        <div class="calc-info" id="calcInfo">Digite a quantidade disponível de qualquer ingrediente 👆</div>
       </div>`;
 
   const instrHtml = r.instructions
@@ -1003,23 +1004,42 @@ function switchTab(id, tab) {
 function calcProportions(recipeId, changedIdx) {
   const r = recipes.find(x => x.id === recipeId);
   if (!r) return;
-  const inputVal = parseFloat(document.getElementById(`calc_${changedIdx}`).value);
-  if (!inputVal || inputVal <= 0 || !r.ingredients[changedIdx].qty) return;
 
-  const factor = inputVal / r.ingredients[changedIdx].qty;
+  const changedInput = document.getElementById(`calc_${changedIdx}`);
+  const inputVal = parseFloat(changedInput.value);
+  if (!inputVal || inputVal <= 0) return;
+
+  // Use data-original from the input element itself (reliable even if qty was saved as 0)
+  const originalQty = parseFloat(changedInput.dataset.original);
+  if (!originalQty || originalQty <= 0) {
+    const calcInfo = document.getElementById('calcInfo');
+    if (calcInfo) calcInfo.textContent = 'Este ingrediente não tem quantidade na receita. Edite a receita e adicione a quantidade.';
+    return;
+  }
+
+  const factor = inputVal / originalQty;
 
   r.ingredients.forEach((ing, idx) => {
     const factorEl = document.getElementById(`factor_${idx}`);
     if (!factorEl) return;
+    const origInput = document.getElementById(`calc_${idx}`);
+    const origQty = parseFloat(origInput ? origInput.dataset.original : 0);
+
     if (idx === changedIdx) {
       factorEl.textContent = factor.toFixed(2) + '×';
       factorEl.style.color = 'var(--terracotta)';
+      factorEl.style.fontSize = '15px';
     } else {
-      const newVal = (ing.qty * factor);
-      const display = Number.isInteger(newVal) ? newVal : newVal.toFixed(1);
-      factorEl.textContent = `${display} ${ing.unit}`;
-      factorEl.style.color = 'var(--green)';
-      factorEl.style.fontSize = '16px';
+      if (!origQty) {
+        factorEl.textContent = '?';
+        factorEl.style.color = 'var(--text-muted)';
+      } else {
+        const newVal = origQty * factor;
+        const display = Number.isInteger(newVal) ? newVal : parseFloat(newVal.toFixed(1));
+        factorEl.textContent = `${display} ${ing.unit}`;
+        factorEl.style.color = 'var(--green)';
+        factorEl.style.fontSize = '16px';
+      }
     }
   });
 
